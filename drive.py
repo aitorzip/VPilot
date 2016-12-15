@@ -47,12 +47,12 @@ class Server:
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Remote Driving')
-	parser.add_argument('model', type=str, help='Path to model definition json. Model weights should be on the same path.')
+	parser.add_argument('weights', type=str, help='Path to model weights')
 	parser.add_argument('port', type=int, help='Port to listen to')
 	parser.add_argument('width', type=int, help='Width of the image to receive')
 	parser.add_argument('height', type=int, help='Height of the image to receive')
 	args = parser.parse_args()
-	model = model.getModel(model_path=args.model)
+	model = model.getModel(weights_path=args.weights)
 
 	server = Server(port=args.port, image_size=(args.width, args.height))
 	while 1:
