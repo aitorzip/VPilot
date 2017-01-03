@@ -3,7 +3,7 @@ from PIL import Image
 import socket, struct
 import numpy as np
 from array import array
-import model
+from model import NvidiaLRCN
 
 class Server:
 	def __init__(self, port=8000, image_size=(200,66)):
@@ -11,7 +11,7 @@ class Server:
 		self.image_size = image_size
 		self.buffer_size = image_size[0]*image_size[1]*3;
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.s.bind(('127.0.0.1', port))
+		self.s.bind(('0.0.0.0', port))
 		self.s.listen(1)
 
 		self.conn, self.addr = self.s.accept()
@@ -25,7 +25,7 @@ class Server:
 			data += packet
 
 		print('Received image')
-		return ((np.array(Image.frombytes('RGB', (self.image_size[1], self.image_size[0]), data)).astype('float32'))[None,:,:,:])
+		return np.array(Image.frombytes('RGB', self.image_size, data)).astype('float32')
 
 	def sendCommands(self,throttle, brake, steering):
 		data = array('f', [throttle, brake, steering])
@@ -52,16 +52,21 @@ if __name__ == '__main__':
 	parser.add_argument('width', type=int, help='Width of the image to receive')
 	parser.add_argument('height', type=int, help='Height of the image to receive')
 	args = parser.parse_args()
-	model = model.getModel(weights_path=args.weights)
+
+	lrcn = NvidiaLRCN()
+	model = lrcn.getModel(weights_path=args.weights)
+	x = np.zeros((5, args.height, args.width, 3), dtype='float32')
 
 	server = Server(port=args.port, image_size=(args.width, args.height))
 	while 1:
-		image = server.recvImage()
-		if (image == None): break
-		throttle = 1.0
-		brake = 0.0
-		steering = float(model.predict(image, batch_size=1))
-		server.sendCommands(throttle, brake, steering)
+		img = server.recvImage()
+		if (img == None): break
+
+		x = np.roll(x,1, axis=0)
+		x[0] = img
+
+		commands = model.predict(x[None,:,:,:,:], batch_size=1)
+		server.sendCommands(commands[0,2], commands[0,0], commands[0,1])
 		reward = server.recvReward()
 		if (reward == None): break
 		print(reward)
