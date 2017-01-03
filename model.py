@@ -66,16 +66,18 @@ class AitorNet:
 	
 	def toSequenceDataset(self, datafile, shuffle=True):
 		originalDataset = np.genfromtxt(datafile, delimiter=' ')
+		directory = os.path.dirname(datafile)
+		filenames = [os.path.join(directory, str(int(imageName))) + '.png' for imageName in originalDataset[:, 0]]
+
 		nframes = originalDataset.shape[0]
 		ntargets = originalDataset.shape[1]
-
 		sequenceDataset = []
 		for frameIndex in range(1, nframes+1):
-			x = np.zeros(self.lookback, dtype='int32')
+			x = [None] * self.lookback
 			if((frameIndex - self.lookback) < 0):
-				x[-frameIndex:] = originalDataset[:frameIndex, 0]
+				x[-frameIndex:] = filenames[:frameIndex]
 			else:
-				x[:] = originalDataset[(frameIndex - self.lookback):frameIndex, 0]
+				x[:] = filenames[(frameIndex - self.lookback):frameIndex]
 
 			sequence = (x, originalDataset[frameIndex-1, 1:ntargets])
 			sequenceDataset.append(sequence)
@@ -85,20 +87,20 @@ class AitorNet:
 
 		return sequenceDataset
 	
-	def dataGenerator(self, directories, datasets, batchSize=1):
+	def dataGenerator(self, datasets, batchSize=1):
 		while True:
 			x = np.zeros((batchSize, self.lookback, self.height, self.width, self.channels), dtype='float32')
 			y = np.zeros((batchSize, 3))
 			batchCount = 0
 
-			for directory, dataset in zip(directories, datasets):
+			for dataset in datasets:
 				for sample in dataset:
 					y[batchCount, :] = sample[1][2:5]
-					for frameIndex, frameName in enumerate(sample[0]):
-						if(int(frameName) == 0):
+					for frameIndex, frameFile in enumerate(sample[0]):
+						if(frameFile == None):
 							pass
 						else:
-							x[batchCount, frameIndex, :, :, :] = imread(os.path.join(directory, str(int(frameName))) + ".png", mode="RGB").astype('float32')
+							x[batchCount, frameIndex, :, :, :] = imread(frameFile, mode="RGB").astype('float32')
 							
 					batchCount = batchCount + 1
 					if (batchCount == batchSize):

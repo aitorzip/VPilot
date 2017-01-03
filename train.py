@@ -8,18 +8,17 @@ from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
 
 if __name__ == '__main__':
+
 	datasetFiles = ['/home/aitor/Dataset/GTAVDataset_3/dataset.txt', '/home/aitor/Dataset/GTAVDataset_5/dataset.txt', '/home/aitor/Dataset/GTAVDataset_6/dataset.txt', 
 					'/home/aitor/Dataset/GTAVDataset_7/dataset.txt', '/home/aitor/Dataset/GTAVDataset_8/dataset.txt', '/home/aitor/Dataset/GTAVDataset_3_2/dataset.txt', 
 					'/home/aitor/Dataset/GTAVDataset_8_2/dataset.txt']
+	
 	lrcn = AitorNet()
-
-	directories = []
 	train_datasets = []
 	val_datasets = []
 	train_samples = 0
 	val_samples = 0
 	for datasetFile in datasetFiles:
-		directories.append(os.path.dirname(datasetFile))
 		dataset = lrcn.toSequenceDataset(datasetFile)
 
 		val_len = int(len(dataset)*0.3)
@@ -36,8 +35,8 @@ if __name__ == '__main__':
 	model.compile(optimizer=Adam(), loss='mse')
 
 	ckp_callback = ModelCheckpoint("model.h5", monitor="val_loss", save_best_only=True, save_weights_only=True, mode='min')
-	train_generator = lrcn.dataGenerator(directories, train_datasets)
-	val_generator = lrcn.dataGenerator(directories, val_datasets)
+	train_generator = lrcn.dataGenerator(train_datasets)
+	val_generator = lrcn.dataGenerator(val_datasets)
 	
 	model.fit_generator(
 		train_generator,
