@@ -3,9 +3,11 @@
 
 import numpy as np
 import os
-from model import AitorNet
+
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
+
+from model import nanoAitorNet
 
 if __name__ == '__main__':
 
@@ -13,37 +15,25 @@ if __name__ == '__main__':
 					'/home/aitor/Dataset/GTAVDataset_7/dataset.txt', '/home/aitor/Dataset/GTAVDataset_8/dataset.txt', '/home/aitor/Dataset/GTAVDataset_3_2/dataset.txt', 
 					'/home/aitor/Dataset/GTAVDataset_8_2/dataset.txt']
 	
-	lrcn = AitorNet()
-	train_datasets = []
-	val_datasets = []
-	train_samples = 0
-	val_samples = 0
-	for datasetFile in datasetFiles:
-		dataset = lrcn.toSequenceDataset(datasetFile)
+	aitorNet = nanoAitorNet()
 
-		val_len = int(len(dataset)*0.3)
-		val_dataset = dataset[0:val_len]
-		dataset = np.delete(dataset, np.s_[0:val_len], 0)
-		
-		train_samples = train_samples + len(dataset)
-		val_samples = val_samples + len(val_dataset)
+	dataset = aitorNet.toSequenceDataset(datasetFiles)
+	valLen = int(len(dataset)*0.3)
+	valDataset = dataset[0:valLen]
+	dataset = np.delete(dataset, np.s_[0:valLen], 0)
 
-		train_datasets.append(dataset)
-		val_datasets.append(val_dataset)	
+	trainGenerator = aitorNet.dataGenerator(dataset)
+	valGenerator = aitorNet.dataGenerator(valDataset)
 
-	model = lrcn.getModel()
+	model = aitorNet.getModel()
 	model.compile(optimizer=Adam(), loss='mse')
-
 	ckp_callback = ModelCheckpoint("model.h5", monitor="val_loss", save_best_only=True, save_weights_only=True, mode='min')
-	train_generator = lrcn.dataGenerator(train_datasets)
-	val_generator = lrcn.dataGenerator(val_datasets)
 	
 	model.fit_generator(
-		train_generator,
-		samples_per_epoch=train_samples,
+		trainGenerator,
+		samples_per_epoch=len(dataset),
 		nb_epoch=1000,
-		validation_data=val_generator,
-		nb_val_samples=val_samples,
+		validation_data=valGenerator,
+		nb_val_samples=len(valDataset),
 		callbacks=[ckp_callback]
 	)
-	
