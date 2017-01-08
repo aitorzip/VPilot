@@ -11,9 +11,9 @@ from model import nanoAitorNet
 
 if __name__ == '__main__':
 
-	datasetFiles = ['/home/aitor/Dataset/GTAVDataset_3/dataset.txt', '/home/aitor/Dataset/GTAVDataset_5/dataset.txt', '/home/aitor/Dataset/GTAVDataset_6/dataset.txt', 
-					'/home/aitor/Dataset/GTAVDataset_7/dataset.txt', '/home/aitor/Dataset/GTAVDataset_8/dataset.txt', '/home/aitor/Dataset/GTAVDataset_3_2/dataset.txt', 
-					'/home/aitor/Dataset/GTAVDataset_8_2/dataset.txt']
+	datasetFiles = ['/media/aitor/Data/GTAVDataset_3/dataset.txt', '/media/aitor/Data/GTAVDataset_5/dataset.txt', '/media/aitor/Data/GTAVDataset_6/dataset.txt', 
+					'/media/aitor/Data/GTAVDataset_7/dataset.txt', '/media/aitor/Data/GTAVDataset_8/dataset.txt', '/media/aitor/Data/GTAVDataset_3_2/dataset.txt', 
+					'/media/aitor/Data/GTAVDataset_8_2/dataset.txt']
 	
 	aitorNet = nanoAitorNet()
 
@@ -26,7 +26,7 @@ if __name__ == '__main__':
 	valGenerator = aitorNet.dataGenerator(valDataset)
 
 	model = aitorNet.getModel()
-	model.compile(optimizer=Adam(), loss='mse')
+	model.compile(optimizer=Adam(clipnorm=1.0), loss='mse')
 	ckp_callback = ModelCheckpoint("model.h5", monitor="val_loss", save_best_only=True, save_weights_only=True, mode='min')
 	
 	model.fit_generator(
