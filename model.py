@@ -100,7 +100,7 @@ class nanoAitorNet(BaseModel):
 		model.add(Dense(256, init='he_normal', activation='elu', name='Dense_2'))
 		model.add(Dropout(0.5))
 
-		model.add(Dense(3, init='he_normal', name='output'))	
+		model.add(Dense(3, init='he_normal', activation='tanh', name='output'))	
 
 		if(weights_path):
 			model.load_weights(weights_path)
@@ -139,7 +139,7 @@ class AitorNet(BaseModel):
 		model.add(Dense(256, init='he_normal', activation='elu', name='Dense_2'))
 		model.add(Dropout(0.5))
 
-		model.add(Dense(3, init='he_normal', name='output'))	
+		model.add(Dense(3, init='he_normal', activation='tanh', name='output'))	
 
 		if(weights_path):
 			model.load_weights(weights_path)

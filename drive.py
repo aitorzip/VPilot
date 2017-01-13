@@ -3,7 +3,9 @@ from PIL import Image
 import socket, struct
 import numpy as np
 from array import array
-from model import NvidiaLRCN
+from model import nanoAitorNet
+
+import matplotlib.pyplot as plt
 
 class Server:
 	def __init__(self, port=8000, image_size=(200,66)):
@@ -25,12 +27,14 @@ class Server:
 			data += packet
 
 		print('Received image')
-		return np.array(Image.frombytes('RGB', self.image_size, data)).astype('float32')
+		im = Image.frombytes('RGB', self.image_size, data)
+		im.show()
+		return np.asarray(im, dtype='float32')
 
 	def sendCommands(self,throttle, brake, steering):
 		data = array('f', [throttle, brake, steering])
 		self.conn.sendall(data.tobytes())
-		print('Sent commands')
+		print('Sent commands', data)
 
 	def recvReward(self):
 		data = b""
@@ -53,17 +57,18 @@ if __name__ == '__main__':
 	parser.add_argument('height', type=int, help='Height of the image to receive')
 	args = parser.parse_args()
 
-	lrcn = NvidiaLRCN()
-	model = lrcn.getModel(weights_path=args.weights)
-	x = np.zeros((5, args.height, args.width, 3), dtype='float32')
+	aitorNet = nanoAitorNet()
+	model = aitorNet.getModel(weights_path=args.weights)
+	x = np.zeros((50, args.height, args.width, 3), dtype='float32')
 
 	server = Server(port=args.port, image_size=(args.width, args.height))
 	while 1:
 		img = server.recvImage()
 		if (img == None): break
-
-		x = np.roll(x,1, axis=0)
-		x[0] = img
+		#plt.imshow(img.astype('uint8'))
+		#plt.show()
+		x = np.roll(x,-1, axis=0)
+		x[-1] = img
 
 		commands = model.predict(x[None,:,:,:,:], batch_size=1)
 		server.sendCommands(commands[0,2], commands[0,0], commands[0,1])
