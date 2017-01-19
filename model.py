@@ -49,11 +49,11 @@ class BaseModel:
 	def dataGenerator(self, dataset, mode=1, batchSize=1):
 		while True:
 			x = np.zeros((batchSize, self.lookback, self.height, self.width, self.channels), dtype='float32')
-			y = np.zeros((batchSize, 3))
+			y = np.zeros((batchSize, 2))
 			batchCount = 0
 
 			for sample in dataset:
-				y[batchCount, :] = sample[1][2:5]
+				y[batchCount, :] = [sample[1][4] - sample[1][2], sample[1][3]] #throttle - brake, steering
 				for frameIndex, frameFile in enumerate(sample[0]):
 					if(frameFile == None):
 						pass
@@ -100,7 +100,7 @@ class nanoAitorNet(BaseModel):
 		model.add(Dense(256, init='he_normal', activation='elu', name='Dense_2'))
 		model.add(Dropout(0.5))
 
-		model.add(Dense(3, init='he_normal', activation='tanh', name='output'))	
+		model.add(Dense(2, init='he_normal', activation='tanh', name='output'))	
 
 		if(weights_path):
 			model.load_weights(weights_path)
@@ -139,7 +139,7 @@ class AitorNet(BaseModel):
 		model.add(Dense(256, init='he_normal', activation='elu', name='Dense_2'))
 		model.add(Dropout(0.5))
 
-		model.add(Dense(3, init='he_normal', activation='tanh', name='output'))	
+		model.add(Dense(2, init='he_normal', activation='tanh', name='output'))	
 
 		if(weights_path):
 			model.load_weights(weights_path)

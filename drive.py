@@ -1,11 +1,8 @@
 import argparse
-from PIL import Image
 import socket, struct
 import numpy as np
 from array import array
 from model import nanoAitorNet
-
-import matplotlib.pyplot as plt
 
 class Server:
 	def __init__(self, port=8000, image_size=(200,66)):
@@ -26,13 +23,10 @@ class Server:
 			if not packet: return None
 			data += packet
 
-		print('Received image')
-		im = Image.frombytes('RGB', self.image_size, data)
-		im.show()
-		return np.asarray(im, dtype='float32')
+		return np.resize(np.fromstring(data, dtype='uint8'), (self.image_size[1], self.image_size[0], 3)).astype('float32')
 
-	def sendCommands(self,throttle, brake, steering):
-		data = array('f', [throttle, brake, steering])
+	def sendCommands(self, throttle, steering):		
+		data = array('f', [throttle, steering])
 		self.conn.sendall(data.tobytes())
 		print('Sent commands', data)
 
@@ -65,13 +59,11 @@ if __name__ == '__main__':
 	while 1:
 		img = server.recvImage()
 		if (img == None): break
-		#plt.imshow(img.astype('uint8'))
-		#plt.show()
 		x = np.roll(x,-1, axis=0)
 		x[-1] = img
 
 		commands = model.predict(x[None,:,:,:,:], batch_size=1)
-		server.sendCommands(commands[0,2], commands[0,0], commands[0,1])
+		server.sendCommands(commands[0,0], commands[0,1])
 		reward = server.recvReward()
 		if (reward == None): break
 		print(reward)

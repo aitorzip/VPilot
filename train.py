@@ -23,12 +23,6 @@ def acceptSample(sample):
 
 	return False
 
-def plotHist(dataset, n):
-	values = [sample[1][n]for sample in dataset]
-
-	plt.hist(values, bins='auto')
-	plt.show()
-
 if __name__ == '__main__':
 
 	datasetFiles = ['/media/aitor/Data/GTAVDataset_3/dataset.txt', '/media/aitor/Data/GTAVDataset_5/dataset.txt', '/media/aitor/Data/GTAVDataset_6/dataset.txt', 
@@ -40,15 +34,15 @@ if __name__ == '__main__':
 	dataset = aitorNet.toSequenceDataset(datasetFiles)	
 	dataset = [sample for sample in dataset if acceptSample(sample)]
 	
-	valLen = int(len(dataset)*0.2)
+	valLen = int(len(dataset)*0.1)
 	valDataset = dataset[0:valLen]
 	dataset = np.delete(dataset, np.s_[0:valLen], 0)
 
 	trainGenerator = aitorNet.dataGenerator(dataset)
 	valGenerator = aitorNet.dataGenerator(valDataset)
 
-	model = aitorNet.getModel(weights_path="model.h5")
-	model.compile(optimizer=RMSprop(), loss='mse')
+	model = aitorNet.getModel()
+	model.compile(optimizer=RMSprop(), loss='mse', clipnorm=1.0)
 	ckp_callback = ModelCheckpoint("model.h5", monitor="val_loss", save_best_only=True, save_weights_only=True, mode='min')
 	
 	model.fit_generator(
