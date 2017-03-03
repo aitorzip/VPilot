@@ -12,6 +12,7 @@ class Model:
 	def run(self,frame):
 		return [1.0, 0.0, 0.0] #throttle, brake, steering
 
+#Controls the DeepGTAV vehicle
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description=None)
 	parser.add_argument('-l', '--host', default='localhost', help='The IP where DeepGTAV is running')
