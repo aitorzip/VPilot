@@ -8,6 +8,7 @@ import argparse
 import time
 import cv2
 
+#Stores a dataset file with data coming from DeepGTAV
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description=None)
 	parser.add_argument('-l', '--host', default='localhost', help='The IP where DeepGTAV is running')
