@@ -3,6 +3,7 @@
 
 import json
 import numpy as np
+from numpy.lib.stride_tricks import as_strided
 
 class Scenario:
 	def __init__(self, location=None, time=None, weather=None, vehicle=None, drivingMode=None):
@@ -80,4 +81,9 @@ class Commands:
 		return json.dumps({'commands':self.__dict__})
 		
 def frame2numpy(frame, frameSize):
-	return np.resize(np.fromstring(frame, dtype='uint8'), (frameSize[1], frameSize[0], 3))
+	buff = np.fromstring(frame, dtype='uint8')
+	# Scanlines are aligned to 4 bytes in Windows bitmaps
+	strideWidth = int((frameSize[0] * 3 + 3) / 4) * 4
+	# Return a copy because custom strides are not supported by OpenCV.
+	return as_strided(buff, strides=(strideWidth, 3, 1), shape=(frameSize[1], frameSize[0], 3)).copy()
+
