@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import json
-import numpy as np
 import socket, struct
 import pickle
 import gzip
@@ -15,21 +14,15 @@ class Targets:
             self.pickleFile = gzip.open(datasetPath, mode='ab', compresslevel=compressionLevel)
 
     def parse(self, frame, jsonstr):
-        if not self._is_valid_json(jsonstr):
-            return
-
-        dct = json.loads(jsonstr)
+        try:
+            dct = json.loads(jsonstr)
+        except ValueError:
+            return None
+        
         dct['frame'] = frame
         if self.pickleFile != None:
             pickle.dump(dct, self.pickleFile)
         return dct
-
-    def _is_valid_json(self, string):
-        try:
-            json.loads(string)
-        except ValueError:
-            return False
-        return True
 
 class Client:
     def __init__(self, ip='localhost', port=8000, datasetPath=None, compressionLevel=0):
